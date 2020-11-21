@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+  caddy:
+    image: caddy:2.2.1-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - $PWD/deploy/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - $PWD/deploy/caddy/index.html:/usr/share/caddy/index.html
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_log:/logs
+  prism:
+    image: stoplight/prism:4
+    command: ["mock","-h","0.0.0.0","/tmp/api.oas2.yml"]
+    ports:
+      - 4010:4010
+    volumes:
+      - $PWD/deploy/prism/api.oas2.yml:/tmp/api.oas2.yml
+
+  loki:
+    image: grafana/loki:2.0.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.0.0
+    volumes:
+      - $PWD/deploy/promtail/config.yml:/etc/promtail/config.yml
+      - caddy_log:/logs
+    command: -config.file=/etc/promtail/config.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+
+volumes:
+  caddy_data:
+  caddy_config:
+  caddy_log:
