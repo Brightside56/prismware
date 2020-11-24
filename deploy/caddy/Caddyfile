@@ -18,5 +18,6 @@ log {
   output file /logs/access.log {
     roll_disabled
   }
+  #format single_field {host}{hostport}{method}{path}
   format json
 }
